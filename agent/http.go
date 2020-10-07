@@ -222,6 +222,7 @@ type wrappedMux struct {
 
 // ServeHTTP implements the http.Handler interface.
 func (w *wrappedMux) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
+	fmt.Println(req.URL.Path)
 	w.handler.ServeHTTP(resp, req)
 }
 

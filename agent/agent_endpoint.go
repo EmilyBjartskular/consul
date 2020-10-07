@@ -878,6 +878,8 @@ func (s *HTTPServer) AgentRegisterService(resp http.ResponseWriter, req *http.Re
 		return nil, nil
 	}
 
+	s.agent.logger.Warn(args.Name)
+
 	// Check the service address here and in the catalog RPC endpoint
 	// since service registration isn't synchronous.
 	if ipaddr.IsAny(args.Address) {
@@ -1008,7 +1010,9 @@ func (s *HTTPServer) AgentRegisterService(resp http.ResponseWriter, req *http.Re
 }
 
 func (s *HTTPServer) AgentDeregisterService(resp http.ResponseWriter, req *http.Request) (interface{}, error) {
+	s.agent.logger.Warn(req.URL.Path)
 	sid := structs.NewServiceID(strings.TrimPrefix(req.URL.Path, "/v1/agent/service/deregister/"), nil)
+	s.agent.logger.Warn(sid.ID)
 
 	// Get the provided token, if any, and vet against any ACL policies.
 	var token string
