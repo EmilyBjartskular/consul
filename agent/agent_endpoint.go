@@ -39,6 +39,16 @@ type Self struct {
 	XDS         *xdsSelf `json:"xDS,omitempty"`
 }
 
+type Self2 struct {
+	Config      interface{}
+	DebugConfig map[string]interface{}
+	Coord       *coordinate.Coordinate
+	Member      serf.Member
+	Stats       map[string]map[string]interface{}
+	Meta        map[string]string
+	XDS         *xdsSelf `json:"xDS,omitempty"`
+}
+
 type xdsSelf struct {
 	SupportedProxies map[string][]string
 }
@@ -87,12 +97,41 @@ func (s *HTTPHandlers) AgentSelf(resp http.ResponseWriter, req *http.Request) (i
 		Server:     s.agent.config.ServerMode,
 		Version:    s.agent.config.Version,
 	}
-	return Self{
+	/* Trying to convert begins here */
+	stats := map[string]map[string]interface{}{} // top lvl obj stats
+
+	var statsUnformatted = s.agent.Stats()
+	for outerKey, outerValue := range statsUnformatted {
+		partialStats := map[string]interface{}{}
+		for key, value := range outerValue {
+			// int conversion
+			var i, ierr = strconv.Atoi(value)
+			if ierr == nil {
+				partialStats[key] = i
+				continue
+			}
+
+			// bool conversion
+			var b, berr = strconv.ParseBool(value)
+			if berr == nil {
+				partialStats[key] = b
+				continue
+			}
+
+			partialStats[key] = value
+		}
+		stats[outerKey] = partialStats
+	}
+
+	fmt.Sprint(stats) // strconv.
+	/* Trying to convert ends here */
+
+	return Self2{
 		Config:      config,
 		DebugConfig: s.agent.config.Sanitized(),
 		Coord:       cs[s.agent.config.SegmentName],
 		Member:      s.agent.LocalMember(),
-		Stats:       s.agent.Stats(),
+		Stats:       stats,
 		Meta:        s.agent.State.Metadata(),
 		XDS:         xds,
 	}, nil
