@@ -55,6 +55,12 @@ func (s *HTTPHandlers) AgentSelf(resp http.ResponseWriter, req *http.Request) (i
 		return nil, acl.ErrPermissionDenied
 	}
 
+	keys, ok := req.URL.Query()["format"]
+	formatOn := false
+	if ok && keys[0] == "true" {
+		formatOn = true
+	}
+
 	var cs lib.CoordinateSet
 	if !s.agent.config.DisableCoordinates {
 		var err error
@@ -70,6 +76,12 @@ func (s *HTTPHandlers) AgentSelf(resp http.ResponseWriter, req *http.Request) (i
 				"envoy": proxysupport.EnvoyVersions,
 			},
 		}
+	}
+	if formatOn == true {
+		// do correct JSON
+		fmt.Sprintln("got Query")
+	} else {
+		// do current JSON
 	}
 
 	config := struct {
